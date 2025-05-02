@@ -1,0 +1,33 @@
+#!/bin/bash
+
+#write your chossen numbers of lines by creating your file name#
+#################################################################
+
+#Get from username the filename and the number of lines he want as input
+read -p "Please enter your file name you want create: " filename
+read -p "please insert your lines you want to create in file: " lines
+
+# Check if input is a valid positive integer
+if ! [[ "$lines" =~ ^[0-9]+$ ]]; then
+    echo "Error: Please enter a valid positive number."
+    exit 1
+fi
+
+#Check if the filename not exist , it will created . 
+#Check if the filename exist , it will be earse the file.
+
+if [ ! -f $filename ]
+then
+	touch $filename
+	echo "Create a file name: $filename"
+else
+	echo "" > $filename
+	echo "Clean the file $filename"
+fi
+
+
+for i in $(seq 1 $lines) ; do
+	echo $i	$i$i$i$i >> $filename
+done
+
+echo "Done. Created $lines lines in $filename"
