@@ -1,2 +1,3 @@
 # bash
 bash scripts
+This project of bash scripts will contain usefull script tools for helping tasking daily mission ...
